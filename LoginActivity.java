@@ -7,7 +7,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
@@ -27,6 +26,10 @@ public class LoginActivity extends AppCompatActivity {
         password = findViewById(R.id.password);
         submitButton = findViewById(R.id.submit);
         biometricLoginButton = findViewById(R.id.biometric_login);
+
+        // Autofill username and password
+        username.setText("admin");
+        password.setText("1234");
 
         // Regular login button listener
         submitButton.setOnClickListener(v -> {
