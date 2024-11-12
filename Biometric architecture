@@ -1,0 +1,104 @@
+START
+  |
+  v
+[Initialize Biometric Check]
+  - Launch the app on the emulator/device (via Appium).
+  - Prepare the Frida script for hooking.
+  - Ensure the app is properly installed.
+  |
+  v
+[Appium: Trigger Biometric Check]
+  - Appium triggers UI action to navigate to the authentication screen (e.g., clicking the "Login with Biometrics" button).
+  - Appium waits for the biometric prompt to appear on the screen.
+  |
+  v
+[Frida: Check Biometric Availability]
+  - Hook `BiometricManager.canAuthenticate()` using Frida to check if biometric authentication is supported.
+    |
+    +---> BIOMETRIC_SUCCESS (Supported & Enabled) --> Go to [Proceed to Authentication]
+    |
+    +---> BIOMETRIC_ERROR_NONE_ENROLLED (Biometric not set up) --> Go to [Enable Biometrics]
+    |
+    +---> BIOMETRIC_ERROR_NO_HARDWARE (No Biometric Hardware) --> Go to [Alternative Authentication]
+  |
+  v
+[Proceed to Authentication]  
+  - Use `BiometricPrompt.authenticate()` method to initiate biometric authentication (via Appium).
+  - Appium waits for biometric prompt UI.
+  - Frida hooks into `authenticate()` to simulate biometric input or modify behavior:
+    |
+    +---> Force success by calling `onAuthenticationSucceeded()` callback (simulate success).
+    |
+    +---> Force failure by calling `onAuthenticationFailed()` callback (simulate failure).
+  |
+  v
+[Enable Biometrics] (if Biometric not set up)
+  - Check if biometric hardware is available.
+  - Use Frida to modify system settings (via `Settings.Secure.putInt()`):
+    - Set `biometric_enabled` to `1` to enable biometrics.
+  - Verify if the settings change is applied.
+  - Appium triggers a retry for biometric authentication (via `BiometricPrompt.authenticate()`).
+  |
+  v
+[Alternative Authentication]
+  - If biometrics are not available or not set up, fallback to alternative authentication methods.
+  - Appium simulates entering password or PIN on the screen.
+  |
+  v
+[Frida: Hook BiometricPrompt.authenticate()]
+  - Intercept `BiometricPrompt.authenticate()` method:
+    - Hook `AuthenticationCallback.onAuthenticationSucceeded()`.
+    - Hook `AuthenticationCallback.onAuthenticationFailed()`.
+  |
+  v
+[Simulate Authentication Success/Failure]
+  - Inject code to simulate the biometric authentication result:
+    |
+    +---> Simulate success: call `onAuthenticationSucceeded()` and log result.
+    |
+    +---> Simulate failure: call `onAuthenticationFailed()` and log result.
+  |
+  v
+[Appium: Validate Authentication]
+  - Verify if the app proceeds after biometric authentication.
+  - If success:
+    - Check if the app navigates to the correct screen (e.g., home screen).
+    - Log successful authentication.
+  - If failure:
+    - Check if the app falls back to alternative authentication.
+    - Log failure and report issues.
+  |
+  v
+[Test Biometrics on Different Devices/OS]
+  - Appium tests biometric authentication across multiple devices/emulators.
+  - Ensure Frida hooks and modifications work consistently on all devices.
+  |
+  v
+[Inject Frida Script for Testing]
+  - Use command:
+    ```bash
+    frida -U -n <app_package_name> -s biometric_hooks.js
+    ```
+  - Observe app behavior:
+    - Does the app proceed after biometric prompt?
+    - Does it trigger the success callback (`onAuthenticationSucceeded()`) correctly?
+    - Does it handle failures by triggering the failure callback (`onAuthenticationFailed()`)?
+  |
+  v
+[Verify Test Results]
+  - Check if the biometric authentication process works on different devices.
+  - Ensure fallback mechanism works if biometrics are not supported or enrolled.
+  |
+  v
++------------[Test Successful?]------------+
+|                  YES                     |                    NO
+|                                           |
+v                                           v
+[SUCCESS]                                [Debug Issues]
+  - App authenticated                     - Check hooking points in Frida.
+  - Biometric logic works as intended.     - Are `authenticate()` and `onAuthenticationSucceeded()` hooked properly?
+                                           - Are Frida callbacks triggered correctly?
+                                           - Debug Frida script for issues.
+  |
+  v
+END
