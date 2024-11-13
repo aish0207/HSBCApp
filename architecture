@@ -1,0 +1,41 @@
+START
+   ↓
+[Initialize Test Setup]
+   - Launch app on Android device (remote/lab setup)
+   - Ensure device is connected via ADB
+   - Prepare Frida Gadget (inject and configure)
+   - Prepare Appium (install dependencies, set up server)
+   - Set up device parameters (Android version, device model)
+   ↓
+[Check Biometric Hardware Availability]
+   - Hook `BiometricManager.canAuthenticate()` with **Frida Gadget**
+   - Log result: BIOMETRIC_ERROR_NO_HARDWARE (No hardware), BIOMETRIC_ERROR_NONE_ENROLLED (Not set up), BIOMETRIC_SUCCESS (Ready)
+   ↓
+[Biometric Supported?]
+   - **YES** → Proceed to **Biometric Enabled?**
+   - **NO** → Fallback to PIN/Password
+   ↓
+[Biometric Enabled?]
+   - Check `Settings.Secure.getInt()`
+   - Hook `Settings.Secure.getInt()` with **Frida Gadget** to intercept function
+   - Log result: Disabled → Enable biometric, Enabled → Proceed
+   ↓
+[Enable Biometric Authentication]
+   - Hook `Settings.Secure.putInt()` with **Frida Gadget** to enable biometric
+   - Validate and log success/failure
+   ↓
+[Proceed to Biometric Authentication]
+   - Use `BiometricPrompt.authenticate()` API
+   - Hook `BiometricPrompt.authenticate()` with **Frida Gadget** to simulate biometric authentication process
+   ↓
+[Frida Gadget Hooking: Biometric Authentication Flow]
+   - Attach hooks to `BiometricPrompt.authenticate()` to intercept authentication flow
+   - Log callback events from the authentication process:
+     - **onAuthenticationSucceeded()** → Simulate success, trigger success callback
+     - **onAuthenticationFailed()** → Simulate failure, handle error, retry or fallback to PIN
+   ↓
+[Simulate Biometric Authentication Success]
+   - Inject **Frida Gadget** code to force `onAuthenticationSucceeded()` callback
+   - Log success message indicating successful authentication
+   ↓
+END
