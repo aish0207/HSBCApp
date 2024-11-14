@@ -57,6 +57,7 @@ rpc.exports = {
                 // Hook both old and new camera result handlers
                 try {
                     // Hook for Android 12+ (new ActivityResult API)
+                    console.log('[+] Successfully hooked new ActivityResult API');
                     var ActivityResultCallback = Java.use('androidx.activity.result.ActivityResultCallback');
                     ActivityResultCallback.onActivityResult.overload('java.lang.Object').implementation = function(result) {
                         console.log('[+] New ActivityResult API called');
@@ -74,13 +75,13 @@ rpc.exports = {
                         }
                         return this.onActivityResult(result);
                     };
-                    console.log('[+] Successfully hooked new ActivityResult API');
                 } catch (error) {
                     console.log('[*] New ActivityResult API not found, skipping...');
                 }
 
                 // Hook for older versions (traditional onActivityResult)
                 try {
+                    console.log('[+] Successfully hooked traditional onActivityResult');
                     Activity.onActivityResult.overload('int', 'int', 'android.content.Intent').implementation = function(requestCode, resultCode, data) {
                         console.log('[+] Traditional onActivityResult called');
                         if (resultCode === -1 && data !== null) {
@@ -88,7 +89,6 @@ rpc.exports = {
                         }
                         return this.onActivityResult(requestCode, resultCode, data);
                     };
-                    console.log('[+] Successfully hooked traditional onActivityResult');
                 } catch (error) {
                     console.log('[*] Traditional onActivityResult not found, skipping...');
                 }
