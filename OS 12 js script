@@ -1,0 +1,68 @@
+var imagePath = '';
+
+rpc.exports = {
+    init(stage, parameters) {
+        imagePath = parameters.image;
+        console.log("imagePath", imagePath);
+    },
+    dispose() {
+        console.log("[dispose]");
+    },
+};
+
+(function() {
+    'use strict';
+
+    if (Java.available) {
+        Java.perform(function() {
+            try {
+                var File = Java.use('java.io.File');
+                var FileInputStream = Java.use('java.io.FileInputStream');
+                var ByteArrayOutputStream = Java.use('java.io.ByteArrayOutputStream');
+                var BitmapFactory = Java.use('android.graphics.BitmapFactory');
+                var CompressFormat = Java.use('android.graphics.Bitmap$CompressFormat');
+                var ActivityResultCallback = Java.use('androidx.activity.result.ActivityResultCallback');
+
+                function readBytesFromFile(filePath) {
+                    var file = File.$new(filePath);
+                    if (!file.exists()) throw new Error('File does not exist: ' + filePath);
+
+                    var fis = FileInputStream.$new(file);
+                    var baos = ByteArrayOutputStream.$new();
+                    var buffer = Java.array('byte', new Array(1024).fill(0));
+                    var len;
+                    try {
+                        while ((len = fis.read(buffer, 0, buffer.length)) !== -1) {
+                            baos.write(buffer, 0, len);
+                        }
+                        return baos.toByteArray();
+                    } finally {
+                        fis.close();
+                        baos.close();
+                    }
+                }
+
+                console.log("[+] Hooking ActivityResultCallback for Android 12");
+                ActivityResultCallback.onActivityResult.overload('java.lang.Object').implementation = function(result) {
+                    var data = Java.cast(result, Java.use('androidx.activity.result.ActivityResult')).getData();
+                    if (data && imagePath) {
+                        var replacementBytes = readBytesFromFile(imagePath);
+                        var replacementBitmap = BitmapFactory.decodeByteArray(replacementBytes, 0, replacementBytes.length);
+                        var outputUri = data.getParcelableExtra('output');
+                        if (outputUri) {
+                            var resolver = Java.use('android.app.Activity').currentActivity().getContentResolver();
+                            var outputStream = resolver.openOutputStream(outputUri);
+                            replacementBitmap.compress(CompressFormat.PNG.value, 100, outputStream);
+                            outputStream.flush();
+                            outputStream.close();
+                            console.log("[+] Image replaced in Android 12");
+                        }
+                    }
+                    return this.onActivityResult(result);
+                };
+            } catch (err) {
+                console.log('[-] Error:', err.stack);
+            }
+        });
+    }
+})();
