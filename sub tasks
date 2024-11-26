@@ -1,0 +1,7 @@
+Environment Setup (Frida Gadget, Appium, and Device Configuration)
+Hook BiometricManager.canAuthenticate() to simulate constant success.
+Implement the logic for checking if biometrics are enabled (Settings.Secure.getInt()).
+Enable biometric authentication programmatically (Settings.Secure.putInt()).
+Simulate the biometric authentication flow using hooks (BiometricPrompt.authenticate()).
+Simulate authentication success or failure with controlled hooks.
+Integrate the solution into Appium automation scripts for test execution.
