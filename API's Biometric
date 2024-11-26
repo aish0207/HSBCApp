@@ -1,0 +1,17 @@
+BiometricPrompt API
+Introduced in: Android 9 (API level 28)
+Purpose: A unified and modern API that supports biometric authentication (e.g., fingerprint, face recognition, or iris scanning).
+Backward Compatibility: Through the AndroidX Biometric library, it can support devices running API level 23 (Android 6) and higher.
+
+BiometricManager API
+Introduced in: Android 10 (API level 29)
+Purpose: Used to determine if the device supports biometric authentication and whether the enrolled biometric data is sufficient.
+
+KeyguardManager API
+Introduced in: Android 1.0 (API level 1)
+Extended Biometric Support From: Android 5.0 (API level 21)
+Purpose: Manages device-level secure lock screens and allows app integration for PIN, password, or pattern authentication as a fallback to biometric prompts.
+
+FingerprintManager API
+Introduced in: Android 6 (API level 23)
+Purpose: Provides fingerprint-based authentication. It has been largely superseded by the BiometricPrompt API for modern biometric needs.
