@@ -70,37 +70,26 @@
     <!-- ImageView to display selected image -->
     <ImageView
         android:id="@+id/selected_image_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="329dp"
+        android:layout_height="149dp"
+        android:layout_marginTop="24dp"
         android:contentDescription="Selected Image"
         android:scaleType="fitCenter"
-        app:layout_constraintTop_toBottomOf="@id/add_image_button"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintDimensionRatio="1.5"
-        android:layout_marginTop="24dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/add_image_button" />
 
-    <!-- TextureView for Camera Preview -->
-    <TextureView
-        android:id="@+id/camera_texture_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/selected_image_view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintDimensionRatio="1.5"
-        android:layout_marginTop="16dp"
-        android:visibility="gone"/> <!-- Initially hidden -->
 
     <!-- Submit button -->
     <Button
         android:id="@+id/submit_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Submit"
-        app:layout_constraintTop_toBottomOf="@id/camera_texture_view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp" />
+        android:layout_marginBottom="48dp"
 
+        android:text="Submit"
+        app:layout_constraintBottom_toTopOf="@+id/namef"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
