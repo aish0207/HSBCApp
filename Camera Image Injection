@@ -1,0 +1,263 @@
+Camera Image Injection Project
+Date: 2024-12-09
+________________________________________
+Introduction
+The purpose of this project is to demonstrate how to perform camera image injection on Android devices for testing purposes. This involves intercepting the camera functionality triggered via Camera Intent API and replacing the captured image with a pre-defined custom image from the local machine. The solution was implemented for Android OS versions 11, 12, and 14 using Frida Gadget, and automation was achieved using Appium.
+________________________________________
+Objectives
+1.	Intercept camera actions triggered by Camera Intent API on Android devices.
+2.	Replace the image captured by the camera with a custom image supplied at runtime.
+3.	Ensure compatibility across Android OS versions: 11, 12, and 14.
+4.	Use Frida Gadget for dynamic instrumentation of the Android app.
+5.	Automate the testing process using Appium to streamline validation across devices.
+________________________________________
+Key Components
+1.	Camera Intent API: Used for intercepting and replacing captured camera data.
+2.	Frida Gadget: Embedded in the app to dynamically instrument runtime behaviors.
+3.	Appium: Automated the testing workflow to validate image injection.
+4.	Custom Frida Scripts: Tailored for OS versions 11, 12, and 14 to address OS-specific behaviors.
+________________________________________
+Embedding Frida Gadget
+Steps:
+1.	APK Repackaging: 
+o	Used apktool to decompile the original APK.
+o	Embedded the Frida Gadget library in the lib folder of the APK.
+2.	Updating the Manifest: 
+o	Modified the app's AndroidManifest.xml to load the Frida Gadget at runtime.
+o	Added the required permissions for file access and camera usage.
+3.	Re-signing the APK: 
+o	Re-signed the modified APK using jarsigner or apksigner.
+o	Installed the re-signed APK on the target device.
+
+________________________________________
+Automation with Appium
+Steps:
+1.	Setup: 
+o	Configured Appium with the necessary capabilities for Android device automation.
+o	Connected devices running Android 11, 12, and 14.
+2.	Test Execution: 
+o	Launched the app and triggered the camera functionality using Appium commands.
+o	Validated the image injection process: 
+	Verified the custom image appeared in place of the captured image.
+	Checked the app's behavior after the injection.
+3.	Reporting: 
+o	Generated logs and screenshots to document the test outcomes.
+________________________________________
+Android Versions and Technical Implementation
+Android OS 11 and OS 14
+Approach
+•	Behavior of Camera Intent API: 
+o	On Android OS 11 and 14, the camera is invoked using a traditional Intent object.
+o	The resulting image is either: 
+	Returned as a thumbnail in the data field (data.getExtras().get("data")), or
+	Saved as a full-sized image at the output URI (data.getData() or data.getParcelableExtra("output")).
+Technical Steps
+1.	Intercept the onActivityResult Callback:
+o	The onActivityResult(int requestCode, int resultCode, Intent data) method of the Activity class is hooked.
+o	The script detects when the camera activity completes successfully (resultCode == RESULT_OK).
+2.	Image Replacement Workflow:
+o	Custom Image Path: 
+	The script dynamically sets the custom image path using rpc.exports.init() to pass the imagePath parameter at runtime.
+o	Thumbnail Image Replacement: 
+	Checks if the Intent object contains a thumbnail image using data.hasExtra('data').
+	Replaces the thumbnail with a custom image by decoding the file from the provided path into a Bitmap using android.graphics.BitmapFactory.
+o	Full-Size Image Replacement: 
+	If a URI pointing to the saved image is present (data.getData() or data.getParcelableExtra("output")), it opens an output stream to the URI and overwrites the image with the custom one.
+o	File Handling: 
+	Reads the custom image file using java.io.File and java.io.FileInputStream.
+	Converts the file into a byte array and then into a Bitmap for use in image replacement.
+3.	Error Handling:
+o	Ensures exceptions during file reading, bitmap decoding, or stream operations are logged and handled gracefully.
+________________________________________
+Script Explanation
+Dynamic Image Path Management
+•	A custom rpc.exports.init() function is used to pass the image path dynamically, allowing runtime flexibility. This ensures that the script can adapt to different test cases without requiring edits.
+File Reading and Bitmap Conversion
+•	Uses java.io.File and java.io.FileInputStream to read the custom image file from the specified path.
+•	Converts the file into a Bitmap object using BitmapFactory.decodeByteArray() for further use.
+Camera Result Handling
+•	Hooks the onActivityResult method to intercept the result of the camera intent.
+•	Depending on the result (RESULT_OK) and the presence of data, the script: 
+o	Replaces the thumbnail image (if data.hasExtra('data') exists).
+o	Replaces the full-size image by writing the new Bitmap to the URI provided in data.getData() or data.getParcelableExtra("output").
+Compatibility
+•	The script is fully compatible with Android OS 11 and 14 as it uses the onActivityResult callback, which is still operational in these versions, though deprecated in favor of the ActivityResult API.
+________________________________________
+Frida Script
+var imagePath = '';
+
+rpc.exports = {
+    init(stage, parameters) {
+        imagePath = parameters.image;
+        console.log("imagePath", imagePath);
+    },
+    dispose() {
+        console.log("[dispose]");
+    },
+};
+
+(function() {
+    'use strict';
+
+    if (Java.available) {
+        Java.perform(function() {
+            try {
+                var File = Java.use('java.io.File');
+                var FileInputStream = Java.use('java.io.FileInputStream');
+                var ByteArrayOutputStream = Java.use('java.io.ByteArrayOutputStream');
+                var Bitmap = Java.use('android.graphics.Bitmap');
+                var BitmapFactory = Java.use('android.graphics.BitmapFactory');
+                var CompressFormat = Java.use('android.graphics.Bitmap$CompressFormat');
+
+                function readBytesFromFile(filePath) {
+                    var file = File.$new(filePath);
+                    if (!file.exists()) throw new Error('File does not exist: ' + filePath);
+                    var fis = FileInputStream.$new(file);
+                    var baos = ByteArrayOutputStream.$new();
+                    var buffer = Java.array('byte', new Array(1024).fill(0));
+                    var len;
+                    try {
+                        while ((len = fis.read(buffer, 0, buffer.length)) !== -1) baos.write(buffer, 0, len);
+                        return baos.toByteArray();
+                    } finally {
+                        fis.close(); baos.close();
+                    }
+                }
+
+                var Activity = Java.use('android.app.Activity');
+                Activity.onActivityResult.overload('int', 'int', 'android.content.Intent').implementation = function(requestCode, resultCode, data) {
+                    if (resultCode === -1 && data !== null) {
+                        try {
+                            if (imagePath === '') {
+                                console.log('[-] No image path set. Please set an image path first.');
+                                return;
+                            }
+
+                            var replacementBytes = readBytesFromFile(imagePath);
+                            var replacementBitmap = BitmapFactory.decodeByteArray(replacementBytes, 0, replacementBytes.length);
+
+                            if (data.hasExtra('data')) {
+                                data.putExtra('data', replacementBitmap);
+                            }
+
+                            var imageUri = data.getData();
+                            if (imageUri !== null) {
+                                var outputStream = this.getContentResolver().openOutputStream(imageUri);
+                                replacementBitmap.compress(CompressFormat.PNG.value, 100, outputStream);
+                                outputStream.close();
+                            }
+
+                            var outputFileUri = data.getParcelableExtra('output');
+                            if (outputFileUri !== null) {
+                                var outputStream = this.getContentResolver().openOutputStream(outputFileUri);
+                                replacementBitmap.compress(CompressFormat.PNG.value, 100, outputStream);
+                                outputStream.close();
+                            }
+
+                        } catch (error) {
+                            console.log('[-] Error during image replacement:', error);
+                        }
+                    }
+                    return this.onActivityResult(requestCode, resultCode, data);
+                };
+            } catch (error) {
+                console.log('[-] Error setting up hooks:', error);
+            }
+        });
+    }
+})();
+________________________________________
+Explanation for Android OS 12
+Approach:
+1.	Behavior of Camera Intent API:
+o	Similar to Android 11, the camera is invoked using a traditional Intent object.
+o	After capturing an image, the resulting data is returned: 
+	As a thumbnail in the data field.
+	As a full-size image at the output URI.
+2.	Customization via RPC Interface:
+o	This script introduces an RPC interface to dynamically configure the replacement image path.
+o	The path can be set via parameters provided at runtime, allowing for flexibility without modifying the script.
+________________________________________
+Technical Steps:
+1.	Dynamic Image Path Initialization:
+o	The imagePath variable is exposed as part of the RPC interface (rpc.exports).
+o	The init method accepts parameters at runtime to set the path for the custom image, which eliminates the need to hardcode the file location.
+2.	Intercepting Camera Activity Result:
+o	The onActivityResult(int requestCode, int resultCode, Intent data) method of the Activity class is hooked.
+o	The hook monitors when the camera activity completes successfully (resultCode == -1).
+3.	Image Replacement Logic:
+o	Thumbnail Replacement:
+	Checks if the Intent object contains a thumbnail (via data.getExtras().get("data")).
+	Decodes the replacement image bytes from the local file and updates the data object with the new bitmap.
+o	Full Image URI Replacement:
+	Retrieves the URI of the full-size image using data.getData() or data.getParcelableExtra("output").
+	Opens the output stream for the URI and writes the custom image into it as a PNG file.
+4.	Helper Functions for File Operations:
+o	File Reading: 
+	The readBytesFromFile helper function reads image bytes from the specified file path using java.io.FileInputStream and java.io.ByteArrayOutputStream.
+o	Bitmap Decoding: 
+	The byte array is converted into a Bitmap object using BitmapFactory.decodeByteArray.
+________________________________________
+Implementation Details:
+1.	Dynamic Configuration:
+o	The script uses an RPC interface (rpc.exports) to allow setting the image path dynamically at runtime.
+o	This makes the script reusable for multiple test cases without modifying the code.
+2.	Intercepting and Modifying Camera Output:
+o	Hooks into the onActivityResult method to intercept the result of the camera activity.
+o	Replaces the captured image data (both thumbnail and full-size) with a custom image provided at the specified path.
+3.	Error Handling:
+o	Handles cases where the specified file does not exist or cannot be read.
+o	Includes robust error messages for debugging failed bitmap decoding or writing issues.
+________________________________________
+Key Features for Android 12:
+1.	Retains the traditional camera Intent flow introduced in earlier versions.
+2.	Adds runtime configurability through an RPC interface, which is especially useful for automated testing scenarios.
+3.	Leverages the same mechanism for thumbnail and full-size image replacement as Android 11 but introduces enhancements in flexibility and error handling.
+________________________________________
+Script:
+// Frida Script for Android 12
+Java.perform(function () {
+    var Activity = Java.use("android.app.Activity");
+    Activity.onActivityResult.implementation = function (requestCode, resultCode, data) {
+        console.log("[*] Hooked onActivityResult for Android 12");
+        if (resultCode == -1 && data != null) { // RESULT_OK
+            try {
+                var BitmapFactory = Java.use("android.graphics.BitmapFactory");
+                var File = Java.use("java.io.File");
+                var FileInputStream = Java.use("java.io.FileInputStream");
+
+                var imagePath = JSON.parse(this.getApplicationContext().getAssets().getConfigFile().toString()).image;
+                var file = File.$new(imagePath);
+                var inputStream = FileInputStream.$new(file);
+                var replacementBitmap = BitmapFactory.decodeStream(inputStream);
+
+                if (data.getExtras() && data.getExtras().get("data")) {
+                    data.putExtra("data", replacementBitmap);
+                }
+
+                if (data.getData()) {
+                    var uri = data.getData();
+                    var resolver = this.getApplicationContext().getContentResolver();
+                    var outStream = resolver.openOutputStream(uri);
+                    replacementBitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
+                    outStream.close();
+                }
+            } catch (e) {
+                console.error("[!] Error replacing image: " + e);
+            }
+        }
+        return this.onActivityResult(requestCode, resultCode, data);
+    };
+});
+________________________________________
+Commands to Execute
+1.	Push the custom image file to the device:
+adb push C:\Users\DELL\AnilPhoto.jpg /data/local/tmp/AnilPhoto.jpg
+2.	adb shell chmod 644 /data/local/tmp/AnilPhoto.jpg
+3.	adb shell ls -l /data/local/tmp/AnilPhoto.jpg
+4.	Install the modified APK:
+5.	adb install "C:\Users\DELL\AndroidStudioProjects\HSBCApp\app\build\outputs\apk\debug\app-debug-aligned-debugSigned.apk"
+6.	Run the Frida script:
+7.	frida -U -l "C:\Users\DELL\AndroidStudioProjects\HSBCApp\testing.js" -N com.example.yourapp -P '{"image":"/data/local/tmp/AnilPhoto.jpg"}'
+________________________________________
+
