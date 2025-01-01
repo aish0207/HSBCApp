@@ -1,0 +1,205 @@
+________________________________________
+Biometric Authentication Testing Project
+Date: 2024-12-13
+________________________________________
+Introduction
+The goal of this project is to automate the testing of biometric authentication functionality in an Android app. This includes testing fingerprint and Face ID authentication using Frida Gadget to instrument the app dynamically and Appium for test automation. The solution is designed to work with Android OS versions 11, 12, and 14.
+________________________________________
+Objectives
+1.	Intercept biometric authentication calls to simulate fingerprint or Face ID for testing purposes.
+2.	Automate the biometric authentication testing process using Frida and Appium.
+3.	Ensure compatibility with Android OS versions 11, 12, and 14.
+4.	Use Frida Gadget to dynamically modify biometric authentication behavior in the app.
+5.	Validate the app's reaction to biometric authentication success or failure across devices.
+________________________________________
+Key Components
+1.	Biometric Authentication APIs: The native Android biometric APIs for fingerprint and Face ID recognition.
+
+Please note that Biometric feature will work only if the app uses any of the following supported Biometric APIs. To get more details about the Biometric APIs your app uses please check with your app development team.
+On Android, currently we support the following Biometric APIs in Android SDK :
+BiometricPrompt API. For more details, please check BiometricPrompt Google documentation.
+BiometricManager API. For more details, please check BiometricManager Google documentation.
+KeyguardManager API. For more details, please check KeyguardManager Google documentation.
+FingerprintManager API. For more details, please check FingerprintManager Google documentation.
+2.    Frida Gadget: Embedded in the app to dynamically hook into biometric authentication calls and simulate biometric events.
+Embedding Frida Gadget
+Steps:
+1.	APK Repackaging:
+o	Decompile the original APK using apktool.
+o	Embed the Frida Gadget in the app's lib folder.
+2.	Update the Manifest:
+o	Modify the AndroidManifest.xml to load the Frida Gadget dynamically at runtime.
+o	Ensure the app has the necessary permissions for biometric and file access.
+3.	Re-signing the APK:
+o	Re-sign the modified APK using jarsigner or apksigner.
+o	Install the re-signed APK on the target Android devices.
+________________________________________3.   Appium: Automated testing tool to simulate user interaction and trigger biometric authentication.
+Automation with Appium
+Steps:
+1.	Setup:
+o	Configure Appium with the necessary capabilities for Android devices.
+o	Ensure devices running Android versions 11, 12, and 14 are connected.
+2.	Test Execution:
+o	Launch the app and trigger the biometric authentication process using Appium commands.
+o	Simulate biometric authentication success or failure using Frida.
+o	Verify that the app behaves correctly after each authentication simulation.
+3.	Reporting:
+o	Generate logs and screenshots to document the test results, showing whether the biometric authentication succeeded or failed as expected.
+________________________________________
+2.	Frida Scripts: Custom scripts to simulate biometric authentication success or failure events.
+Script and Technical Explanation for Android 11
+Script for Android 11
+// Android 11 Biometric Simulation
+var userInput = '1'; // 1 = Success, other = Failure
+
+rpc.exports = {
+    setinput: function (input) {
+        userInput = input;
+        console.log('[Frida] Input set to:', userInput);
+    },
+};
+
+Java.perform(function () {
+    console.log('[Frida] Starting hooks for Android 11...');
+    var BiometricManager = Java.use('android.hardware.biometrics.BiometricManager');
+    BiometricManager.canAuthenticate.overload().implementation = function () {
+        console.log('[Frida] BiometricManager.canAuthenticate intercepted');
+        return 0; // BIOMETRIC_SUCCESS
+    };
+
+    var BiometricPrompt = Java.use('android.hardware.biometrics.BiometricPrompt');
+    BiometricPrompt.authenticate.overload(
+        'android.os.CancellationSignal',
+        'java.util.concurrent.Executor',
+        'android.hardware.biometrics.BiometricPrompt$AuthenticationCallback'
+    ).implementation = function (cancellationSignal, executor, callback) {
+        console.log('[Frida] BiometricPrompt.authenticate intercepted');
+        if (userInput === '1') {
+            console.log('[Frida] Simulating Authentication Success');
+            Java.scheduleOnMainThread(function () {
+                callback.onAuthenticationSucceeded(null);
+            });
+        } else {
+            console.log('[Frida] Simulating Authentication Failure');
+            Java.scheduleOnMainThread(function () {
+                callback.onAuthenticationFailed();
+            });
+        }
+    };
+});
+Technical Explanation
+1.	Dynamic RPC Control:
+o	Exposes an RPC method setinput() to dynamically change the simulation outcome (success or failure) during runtime.
+o	Logs the updated input for debugging.
+2.	Hooking BiometricManager.canAuthenticate:
+o	Overrides canAuthenticate() to always return 0 (BIOMETRIC_SUCCESS), ensuring the app believes biometrics are supported.
+3.	Intercepting BiometricPrompt.authenticate:
+o	Hooks the authenticate() method to monitor biometric authentication requests.
+o	On success (userInput === '1'), schedules a callback to onAuthenticationSucceeded.
+o	On failure, schedules a callback to onAuthenticationFailed.
+4.	Thread Safety:
+o	Uses Java.scheduleOnMainThread() to ensure callbacks are executed on Android's main UI thread, preventing concurrency issues.
+5.	Targeted for Android 11:
+o	Hooks specific to android.hardware.biometrics.BiometricManager and BiometricPrompt, both of which are primary components for biometric handling in Android 11.
+________________________________________
+Script and Technical Explanation for Android 12
+Script for Android 12
+// Android 12 Biometric Simulation
+var userInput = '1';
+
+rpc.exports = {
+    setinput: function (input) {
+        userInput = input;
+        console.log('[Frida] Input set to:', userInput);
+    },
+};
+
+Java.perform(function () {
+    console.log('[Frida] Starting hooks for Android 12...');
+    var AndroidXBiometricManager = Java.use('androidx.biometric.BiometricManager');
+    AndroidXBiometricManager.canAuthenticate.overload().implementation = function () {
+        console.log('[Frida] AndroidX BiometricManager.canAuthenticate intercepted');
+        return 0; // BIOMETRIC_SUCCESS
+    };
+
+    var AndroidXBiometricPrompt = Java.use('androidx.biometric.BiometricPrompt');
+    AndroidXBiometricPrompt.authenticate.overload(
+        'androidx.biometric.BiometricPrompt$PromptInfo'
+    ).implementation = function (promptInfo) {
+        console.log('[Frida] AndroidX BiometricPrompt.authenticate intercepted');
+        var callback = this.mAuthenticationCallback.value;
+        if (userInput === '1') {
+            console.log('[Frida] Simulating Authentication Success');
+            Java.scheduleOnMainThread(function () {
+                callback.onAuthenticationSucceeded(null);
+            });
+        } else {
+            console.log('[Frida] Simulating Authentication Failure');
+            Java.scheduleOnMainThread(function () {
+                callback.onAuthenticationFailed();
+            });
+        }
+    };
+});
+Technical Explanation
+1.	Dynamic RPC Control:
+o	Same as Android 11, enables runtime modification of the input via RPC.
+2.	Hooking AndroidXBiometricManager.canAuthenticate:
+o	Overrides the AndroidX-specific canAuthenticate() method to ensure the app assumes biometrics are available.
+o	Returns 0 (BIOMETRIC_SUCCESS).
+3.	Intercepting AndroidXBiometricPrompt.authenticate:
+o	Hooks the AndroidX-specific authenticate() method.
+o	Uses mAuthenticationCallback to access and invoke onAuthenticationSucceeded or onAuthenticationFailed based on userInput.
+4.	Thread Safety:
+o	Same as Android 11, ensures callbacks are executed on the main thread for UI consistency.
+5.	Targeted for AndroidX Biometric API:
+o	This script is tailored for apps using AndroidX libraries for biometric handling, which are common in Android 12+.
+________________________________________
+Script and Technical Explanation for Android 14
+Script for Android 14
+// Android 14 Biometric Simulation
+var userInput = '1';
+
+rpc.exports = {
+    setinput: function (input) {
+        userInput = input;
+        console.log('[Frida] Input set to:', userInput);
+    },
+};
+
+Java.perform(function () {
+    console.log('[Frida] Starting hooks for Android 14...');
+    var BiometricPrompt = Java.use('android.hardware.biometrics.BiometricPrompt');
+    BiometricPrompt.authenticate.overload(
+        'android.os.CancellationSignal',
+        'java.util.concurrent.Executor',
+        'android.hardware.biometrics.BiometricPrompt$AuthenticationCallback'
+    ).implementation = function (cancellationSignal, executor, callback) {
+        console.log('[Frida] BiometricPrompt.authenticate intercepted');
+        if (userInput === '1') {
+            console.log('[Frida] Simulating Authentication Success');
+            Java.scheduleOnMainThread(function () {
+                callback.onAuthenticationSucceeded(null);
+            });
+        } else {
+            console.log('[Frida] Simulating Authentication Failure');
+            Java.scheduleOnMainThread(function () {
+                callback.onAuthenticationFailed();
+            });
+        }
+    };
+});
+Technical Explanation
+1.	Dynamic RPC Control:
+o	Same as the earlier versions, supports dynamic simulation of success/failure.
+2.	Hooking BiometricPrompt.authenticate:
+o	Focuses on Android's BiometricPrompt API without AndroidX.
+o	Intercepts authenticate() to simulate user interaction based on userInput.
+o	Uses the AuthenticationCallback to trigger success (onAuthenticationSucceeded) or failure (onAuthenticationFailed).
+3.	Thread Safety:
+o	Same as the earlier scripts, ensures callbacks are thread-safe by scheduling them on the main thread.
+4.	Adapted for Android 14:
+o	Handles potential API changes or stricter security measures introduced in Android 14.
+o	Focuses on core Android biometric classes, which are critical for Android 14+.
+________________________________________
+
