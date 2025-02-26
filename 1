@@ -1,0 +1,71 @@
+**App Upload Process**
+
+## **1. Account Setup**
+Before uploading your app, ensure that your TestFairy account is created and verified.
+
+## **2. Uploading an App**
+### **Methods of Upload:**
+- **New Upload:** Click on "New Upload" to manually upload an app.
+- **Upload API:** Recommended method to integrate with:
+  - **Jenkins Plugin**
+  - **Gradle Plugin**
+  - **Command Line Uploader**
+
+**Note:** The code for these plugins and uploader is open-source and can be modified if needed.
+
+## **3. Manual Upload**
+### **Supported Platforms & File Formats:**
+- **Android:** `.apk` or `.aab`
+- **iOS:** `.ipa` (Signed with AdHoc, Development, or Enterprise certificates)
+- **MacOS:** `.app` (Must be zipped as `.zip` for distribution)
+- **Windows:** `.exe` or `.zip` (Contact support for further assistance)
+
+### **VisionOS Support:**
+TestFairy now supports **VisionOS (XROS)** along with:
+- iPhoneOS
+- WatchOS
+- MacOSX
+- AppleTVOS
+- DriverKit
+- XROS (VisionOS)
+
+## **4. Android Build File Support**
+- **APK Format:** Directly processed.
+- **AAB Format:**
+  - Converted to APK for distribution.
+  - Original AAB file is stored for retrieval if needed.
+
+## **5. Choosing Your Build File**
+During the upload process, select the correct file type:
+- iOS: `.ipa`
+- Android: `.apk` or `.aab`
+- MacOS: `.zip`
+- Windows: `.exe` or `.zip`
+
+## **6. Project Settings**
+During the upload process, you can configure the following settings:
+- **In-App Reporting:**
+  - Enables "shake to report" feature for feedback submission.
+  - Collects logs, screenshots, and video recordings.
+- **Auto-Update:**
+  - Notifies users of the latest version.
+  - Automatically downloads updates without manual intervention.
+- **Custom Comments:**
+  - Add release notes and update descriptions.
+
+**Note:** These settings apply only if the TestFairy SDK is integrated into your app.
+
+Additional build settings can be configured in the **Account Settings** page.
+
+## **7. Updating an App**
+- **Replacing an Existing Build:** Upload the same build with the same version; it will override the previous version without creating a new app version.
+- **Uploading a New Version:** Upload a new build; TestFairy will recognize the same package name and group versions together within the same project.
+
+## **8. Symbols or Mapping Files**
+- **Purpose:** Essential for debugging and analyzing crash reports.
+- **Usage:** If using the API for upload, attach symbol or mapping files to your build for easier retrieval.
+- **Platforms:** Applies to both iOS and Android applications where obfuscation or optimization is enabled.
+
+---
+This document provides a structured overview of the app upload process in TestFairy, ensuring clarity and efficiency in managing application versions and distribution.
+
