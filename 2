@@ -1,0 +1,64 @@
+**Builds Overview**
+
+The Build feature is an essential component of our app development and testing platform. It provides an overview of all versions of the app uploaded and tested within the system. This feature offers valuable insights into performance, stability, and user feedback for each app version, ensuring a seamless and successful user experience.
+
+---
+
+### **Accessing Build View**
+To access the Build menu:
+1. Navigate to the **TestFairy Dashboard**.
+2. Click **Apps**.
+3. Select the desired app from the list.
+
+**Builds Page Information:**
+Each build entry displays key details:
+- **VERSION**: Build name and version number.
+- **SESSIONS**: Number of user sessions logged for the build (clickable for deeper analysis in the **INSIGHTS** tab).
+- **CRASHES**: Number of crashes recorded for this version (clickable for details in the **CRASHES** tab).
+- **DOWNLOADS**: Total number of times the build was downloaded.
+- **FEEDBACK**: Amount of user feedback received (clickable for comments in the **FEEDBACK** tab).
+- **UPLOADED**: Date and time of the build upload.
+- **TAGS**: Labels to help with build identification, searchable and editable in **Build Settings**.
+
+---
+
+### **Build Status Indicators**
+- **Build not loaded**: The build is not available in the system.
+- **Video disabled**: No video recording is enabled.
+- **Auto-update not enabled**: Users will not receive automatic updates.
+- **Metadata available**: The build has additional metadata information.
+- **Release notes available**: The build includes release notes.
+- **Build distribution disabled**: The build is not shared for testing.
+- **Different signing certificate**: The build is signed with a different certificate from the previous build.
+- **TestFairy SDK missing**: The build does not contain the TestFairy SDK.
+- **Starred builds**: Marked builds appear at the top of the list regardless of upload order.
+
+---
+
+### **Tags**
+- Tags help with build identification and can be added during upload using the **Upload API** or later in **Build Settings**.
+- Tags can contain spaces and multiple words.
+- Tags are searchable via the **Search Box** at the top of the Builds page.
+
+---
+
+### **Metadata**
+- Metadata includes specific build details defined at upload.
+- The format follows: `metadata.key=value` (e.g., `metadata.branch=master`).
+- Metadata values are searchable in the **Search Box**.
+- Metadata cannot be modified after upload.
+
+---
+
+### **Deleting Builds and Apps**
+To delete a build:
+1. Select the checkbox next to the build.
+2. Click **More Actions...**.
+3. Select **Delete Build**.
+
+This process removes the build from the system.
+
+---
+
+For further details or assistance, please refer to the **TestFairy Support Team**.
+
