@@ -1,0 +1,179 @@
+# **Optimizing Hot Launch Performance: Command Explanations & Resource Constraints**
+
+## **1. Setting Up Perfetto**
+Perfetto is a system tracing tool used to **capture CPU and memory usage**.
+
+To enable Perfetto:
+```sh
+adb shell setprop persist.traced.enable 1
+adb shell setprop persist.traced_probes.enable 1
+```
+- `adb shell setprop` → Sets system properties.
+- `persist.traced.enable 1` → Enables the **Perfetto tracing daemon**.
+- `persist.traced_probes.enable 1` → Enables **data collection** by Perfetto.
+
+To verify that Perfetto is running:
+```sh
+adb shell ps | grep traced
+```
+- `ps` → Lists running processes.
+- `grep traced` → Filters the list to show only **traced services**.
+
+---
+
+## **2. Capturing CPU and Memory Usage**
+The following **Perfetto command** records CPU and memory events:
+```sh
+adb shell perfetto -o /data/misc/perfetto-traces/trace_file.perfetto-trace -c - <<EOF
+buffers: {
+  size_kb: 32768
+  fill_policy: RING_BUFFER
+}
+data_sources: {
+  config {
+    name: "linux.ftrace"
+    ftrace_config {
+      ftrace_events: "sched/sched_switch"
+      ftrace_events: "power/cpu_idle"
+      ftrace_events: "mm_event/mm_page_alloc"
+      ftrace_events: "mm_event/mm_page_free"
+    }
+  }
+}
+EOF
+```
+### **How it works:**
+- `-o /data/misc/perfetto-traces/trace_file.perfetto-trace` → Saves trace to a file.  
+- `buffers: { size_kb: 32768 }` → Allocates **32MB of buffer size** for tracing.  
+- `fill_policy: RING_BUFFER` → Uses a **circular buffer** (overwrites old data).  
+- `ftrace_events`:
+  - `"sched/sched_switch"` → Tracks **CPU task switches**.
+  - `"power/cpu_idle"` → Tracks **CPU idle time**.
+  - `"mm_event/mm_page_alloc"` → Tracks **memory allocation**.
+  - `"mm_event/mm_page_free"` → Tracks **memory deallocation**.
+
+### **Retrieving and analyzing the trace**
+After capturing data, pull the trace file:
+```sh
+adb pull /data/misc/perfetto-traces/trace_file.perfetto-trace .
+```
+- `adb pull` → **Transfers** the file from the device to your PC.  
+- Open the trace in **Perfetto UI** ([https://ui.perfetto.dev](https://ui.perfetto.dev)).
+
+---
+
+## **3. Constraining CPU Usage**
+### **A. Adjust Out-Of-Memory (OOM) Score**
+```sh
+adb shell echo 2 > /proc/$(pidof com.example.app)/oom_score_adj
+```
+- `pidof com.example.app` → Finds **the process ID (PID)** of your app.  
+- `/proc/[PID]/oom_score_adj` → Adjusts the OOM **priority level**.  
+  - **Higher value** = **more likely** to be killed by the system.  
+  - **Lower value** = **less likely** to be killed.  
+  - `2` keeps the process active **but deprioritizes it slightly**.
+
+### **B. Restrict App to Specific CPU Cores**
+```sh
+adb shell taskset -p 0x3 $(pidof com.example.app)
+```
+- `taskset -p 0x3` → Binds the process to **CPU cores 0 and 1** only.  
+  - `0x1` → **Core 0**  
+  - `0x2` → **Core 1**  
+  - `0x3` → **Core 0 and 1** (Binary `11` = Two cores)  
+
+### **C. Limit CPU Time Using cgroups**
+```sh
+adb shell "echo 512 > /dev/cpuctl/com.example.app/cpu.shares"
+```
+- `/dev/cpuctl/com.example.app/cpu.shares` → Assigns CPU **bandwidth priority**.  
+  - `1024` = **default (full CPU usage)**  
+  - `512` = **limits CPU usage to 50%**  
+
+---
+
+## **4. Constraining Memory Usage**
+### **A. Simulate Low-Memory Conditions**
+```sh
+adb shell am memory-pressure com.example.app moderate
+```
+- `am memory-pressure` → Simulates **low-memory scenarios** for testing.  
+  - `moderate` → Medium memory pressure.  
+  - `critical` → Extreme memory pressure.  
+
+### **B. Limit Memory Allocation**
+```sh
+adb shell echo 50000 > /proc/$(pidof com.example.app)/oom_adj
+```
+- `oom_adj` controls how **aggressively** the system kills an app when low on memory.  
+  - **Higher values** = Killed **faster**.  
+  - `50000` → Forces aggressive memory management.  
+
+### **C. Check Memory Usage**
+```sh
+adb shell dumpsys meminfo com.example.app
+```
+- `dumpsys meminfo` → **Detailed memory usage** breakdown of the app.  
+
+---
+
+# **iOS: Using Instruments, sysctl, and Other Tools**
+## **1. Profiling CPU and Memory Usage**
+```sh
+xcrun instruments -t "Time Profiler" -D mytrace.trace com.example.app
+```
+- `xcrun instruments` → Runs **Instruments** for CPU/memory profiling.  
+- `-t "Time Profiler"` → Uses the **Time Profiler template**.  
+- `-D mytrace.trace` → Saves output to `mytrace.trace`.  
+
+To open the trace:
+```sh
+open mytrace.trace
+```
+- Opens the file in **Xcode Instruments**.
+
+---
+
+## **2. Constraining CPU Usage**
+### **A. Reduce CPU Scheduling Priority**
+```sh
+sudo taskpolicy -c 50 -p $(pgrep -x com.example.app)
+```
+- `taskpolicy -c 50` → Limits CPU to **50% usage**.  
+
+### **B. Lower CPU Priority Using renice**
+```sh
+sudo renice -n 10 -p $(pgrep -x com.example.app)
+```
+- `renice -n 10` → Increases the process **niceness**, meaning it gets **lower CPU priority**.
+
+### **C. Monitor CPU Usage**
+```sh
+top -o cpu
+```
+- `top -o cpu` → Lists **processes sorted by CPU usage**.
+
+---
+
+## **3. Constraining Memory Usage**
+### **A. Apply System-Wide Memory Pressure**
+```sh
+sysctl -w kern.memorystatus_level=5
+```
+- `sysctl -w kern.memorystatus_level=5` → Forces **low-memory mode**.
+
+### **B. Simulate Critical Memory Pressure**
+```sh
+sudo memory_pressure -S -l critical
+```
+- `memory_pressure -S -l critical` → Forces **critical memory pressure** conditions.
+
+### **C. Check Memory Usage**
+```sh
+vm_stat
+```
+- `vm_stat` → Shows **detailed memory statistics**.
+
+---
+This guide provides a structured way to analyze and constrain system resources for optimizing **hot launch performance**.
+
