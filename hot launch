@@ -1,0 +1,131 @@
+# Constraining CPU and Memory Resources for Hot Launch of Applications on Android and iOS
+
+## Introduction
+Optimizing CPU and memory usage is crucial for improving the hot launch performance of applications on both Android and iOS platforms. Since direct optimization of resources is challenging, we can use command-line tools to apply constraints and monitor resource utilization. This document provides detailed step-by-step guidance on how to constrain resources effectively.
+
+## Android: Using Perfetto and Additional Tools
+Perfetto is a powerful tracing tool that helps in profiling CPU and memory usage. Additionally, `cgroups` and `dumpsys` can provide deeper insights and control.
+
+### 1. **Setting Up Perfetto**
+Perfetto requires enabling Developer Options and traced services on the Android device.
+- Enable Perfetto tracing services:
+  ```sh
+  adb shell setprop persist.traced.enable 1
+  adb shell setprop persist.traced_probes.enable 1
+  ```
+- Verify installation by checking if traced services are running:
+  ```sh
+  adb shell ps | grep traced
+  ```
+
+### 2. **Capturing CPU and Memory Usage**
+Perfetto allows detailed profiling of CPU and memory usage.
+- Start a tracing session and record CPU and memory events:
+  ```sh
+  adb shell perfetto -o /data/misc/perfetto-traces/trace_file.perfetto-trace -c - <<EOF
+  buffers: {
+    size_kb: 32768
+    fill_policy: RING_BUFFER
+  }
+  data_sources: {
+    config {
+      name: "linux.ftrace"
+      ftrace_config {
+        ftrace_events: "sched/sched_switch"
+        ftrace_events: "power/cpu_idle"
+        ftrace_events: "mm_event/mm_page_alloc"
+        ftrace_events: "mm_event/mm_page_free"
+      }
+    }
+  }
+  EOF
+  ```
+- Retrieve and analyze the recorded trace:
+  ```sh
+  adb pull /data/misc/perfetto-traces/trace_file.perfetto-trace .
+  ```
+- Open the trace in Perfetto UI for analysis: [https://ui.perfetto.dev](https://ui.perfetto.dev)
+
+### 3. **Applying CPU Constraints**
+To limit CPU usage for an app:
+- Adjust Out-Of-Memory (OOM) score:
+  ```sh
+  adb shell echo 2 > /proc/$(pidof com.example.app)/oom_score_adj
+  ```
+- Restrict the app to specific CPU cores:
+  ```sh
+  adb shell taskset -p 0x3 $(pidof com.example.app)
+  ```
+- Use `cgroups` to limit CPU shares:
+  ```sh
+  adb shell "echo 512 > /dev/cpuctl/com.example.app/cpu.shares"
+  ```
+
+### 4. **Applying Memory Constraints**
+- Simulate low-memory conditions:
+  ```sh
+  adb shell am memory-pressure com.example.app moderate
+  ```
+- Limit memory allocation manually:
+  ```sh
+  adb shell echo 50000 > /proc/$(pidof com.example.app)/oom_adj
+  ```
+- Analyze memory usage:
+  ```sh
+  adb shell dumpsys meminfo com.example.app
+  ```
+
+## iOS: Using Instruments, sysctl, and Additional Tools
+On iOS, Instruments and sysctl commands help in resource monitoring and constraints. Additionally, `thermalnotifierd` and `powerlog` can provide deeper insights.
+
+### 1. **Using Instruments for CPU and Memory Profiling**
+- Start Instruments to record CPU and memory usage:
+  ```sh
+  xcrun instruments -t "Time Profiler" -D mytrace.trace com.example.app
+  ```
+- View the collected trace:
+  ```sh
+  open mytrace.trace
+  ```
+
+### 2. **Applying CPU Constraints**
+- Limit CPU affinity using task policy:
+  ```sh
+  sudo taskpolicy -c 50 -p $(pgrep -x com.example.app)
+  ```
+- Restrict app CPU usage priority:
+  ```sh
+  sudo renice -n 10 -p $(pgrep -x com.example.app)
+  ```
+- Monitor CPU consumption:
+  ```sh
+  top -o cpu
+  ```
+
+### 3. **Applying Memory Constraints**
+- Set memory pressure constraints:
+  ```sh
+  sysctl -w kern.memorystatus_level=5
+  ```
+- Simulate low memory environment:
+  ```sh
+  sudo memory_pressure -S -l critical
+  ```
+- Monitor memory usage:
+  ```sh
+  vm_stat
+  ```
+
+### 4. **Using Additional iOS Tools**
+- `thermalnotifierd` for thermal impact testing:
+  ```sh
+  sudo thermalnotifierd -v
+  ```
+- `powerlog` for analyzing CPU/memory/power usage:
+  ```sh
+  sudo powerlog -f
+  ```
+
+## Conclusion
+By using Perfetto, cgroups, and dumpsys on Android and Instruments, sysctl, and additional diagnostic tools on iOS, we can effectively constrain CPU and memory resources to optimize hot launch performance. These methods allow fine-tuning resource allocation, ensuring efficient application performance under constrained environments.
+
