@@ -1,0 +1,84 @@
+For iPhone (iOS), here’s how you can **constrain CPU and memory resources** specifically for hot launch optimization using commands.  
+
+---
+
+## **Constraining CPU and Memory on iPhone (iOS)**  
+
+### **1. Checking Current Resource Usage**  
+
+Before applying constraints, check CPU and memory usage using **Instruments** or command-line tools.  
+
+#### **Check CPU Usage**  
+```sh
+top -o cpu
+```  
+- `top` → Shows real-time CPU usage.  
+- `-o cpu` → Sorts processes by CPU usage.  
+
+#### **Check Memory Usage**  
+```sh
+vm_stat
+```  
+- Displays **virtual memory statistics** (free pages, active pages, swap usage, etc.).  
+
+---
+
+### **2. Constraining CPU Usage on iPhone**  
+
+#### **A. Lower CPU Priority for the App**  
+```sh
+renice -n 10 -p $(pgrep -f YourAppName)
+```  
+- `renice -n 10` → Increases process **niceness** (higher = lower priority).  
+- `pgrep -f YourAppName` → Finds the **process ID (PID)** of your app.  
+
+#### **B. Bind the App to Specific CPU Cores**  
+```sh
+taskpolicy -c 1 $(pgrep -f YourAppName)
+```  
+- `taskpolicy -c 1` → Restricts the app to **only CPU core 1**.  
+- Helps prevent **excess CPU usage** across all cores.  
+
+#### **C. Limit CPU Time for the App**  
+```sh
+cpulimit -p $(pgrep -f YourAppName) -l 30
+```  
+- `cpulimit -p [PID] -l 30` → Limits CPU usage **to 30%** for the app.  
+
+---
+
+### **3. Constraining Memory Usage on iPhone**  
+
+#### **A. Simulate Low-Memory Conditions**  
+```sh
+sudo memory_pressure -S
+```  
+- `memory_pressure -S` → Triggers **simulated memory pressure** on the system.  
+
+#### **B. Check App Memory Consumption**  
+```sh
+ps aux | grep YourAppName
+```  
+- `ps aux` → Lists running processes with memory usage.  
+
+#### **C. Reduce Memory Priority for the App**  
+```sh
+taskpolicy -b $(pgrep -f YourAppName)
+```  
+- `taskpolicy -b` → Lowers app priority **to background level**, reducing memory pressure.  
+
+---
+
+### **4. Verifying and Debugging the Constraints**  
+
+#### **A. Check CPU Usage After Applying Constraints**  
+```sh
+top -o cpu
+```  
+
+#### **B. Check Memory Usage After Applying Constraints**  
+```sh
+vm_stat
+```  
+
+These commands will help optimize **hot launch performance** by limiting CPU and memory resource consumption on iPhone devices. Let me know if you need further details!
