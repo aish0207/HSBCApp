@@ -1,0 +1,17 @@
+Phase 1: App Build Management Portal
+App Build Upload & Storage:
+
+Users can upload Android (.apk, .aab) and iOS (.ipa) builds to a centralized portal.
+Versioning support to manage different releases.
+Device Lab Installation:
+
+Uploaded builds can be installed on lab devices for manual and automation testing.
+Ensures correct deployment on Android and iOS devices.
+Tester & Organization-Wide Distribution:
+
+Builds can be shared with testers and stakeholders via organization email.
+Access control to restrict unauthorized downloads.
+Build Tracking & Logs:
+
+Dashboard to monitor uploaded builds and installation status.
+Logs for tracking downloads and installations.
