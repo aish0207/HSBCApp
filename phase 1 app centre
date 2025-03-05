@@ -1,26 +1,36 @@
-Project-Wise Groups & Access Control:
+### **Phase 1: App Build Management Portal (Similar to Microsoft App Center, Basic Features Only)**  
 
-Each project will have a dedicated group (e.g., "Project ABC") for build management.
-Only members of a specific project group can upload and manage builds within their group.
-Users outside the group will not have upload access to ensure strict project isolation.
-App Build Upload & Storage:
+1. **Project-Wise Groups & Access Control:**  
+   - Each project will have a dedicated group (e.g., "Project ABC") for build management.  
+   - Only members of a specific project group can upload and manage builds within their group.  
+   - Users outside the group will not have upload access to ensure strict project isolation.  
 
-Users can upload Android (.apk, .aab) and iOS (.ipa) builds to a centralized portal.
-Versioning support to track different releases efficiently.
-Upload permission will be restricted to authorized users only.
-Strict File Naming & Format Restrictions:
+2. **App Build Upload & Storage:**  
+   - Users can upload Android (.apk, .aab) and iOS (.ipa) builds to a centralized portal.  
+   - Versioning support to track different releases efficiently.  
+   - Upload permission will be restricted to authorized users only.  
 
-No duplicate build names allowed to prevent confusion and overwrites.
-Only .apk, .aab, and .ipa files are allowed; other file types are restricted.
-Device Lab Installation:
+3. **Strict File Naming & Format Restrictions:**  
+   - No duplicate build names allowed to prevent confusion and overwrites.  
+   - Only **.apk, .aab, and .ipa** files are allowed; other file types are restricted.  
 
-Uploaded builds can be installed on lab devices for manual and automation testing.
-Ensures correct deployment on Android and iOS devices.
-Tester & Organization-Wide Distribution:
+4. **Build Upload Limit Per Project:**  
+   - Each project will have a defined limit on the number of builds that can be uploaded.  
+   - This prevents excessive uploads that could overload lab servers and storage.  
+   - If the limit is reached, users must delete old builds before uploading new ones.  
+   - A **warning message** will be displayed when the limit is exceeded:  
+     *"Upload limit reached for this project. Please delete older builds before uploading new ones."*  
 
-Builds can be shared with testers and stakeholders via organization email.
-Role-based access control to manage who can download or install the builds.
-Build Tracking & Logs:
+5. **Device Lab Installation:**  
+   - Uploaded builds can be installed on lab devices for manual and automation testing.  
+   - Ensures correct deployment on Android and iOS devices.  
 
-Dashboard to monitor uploaded builds and installation status.
-Logs for tracking user actions, including uploads, downloads, and installations.
+6. **Tester & Organization-Wide Distribution:**  
+   - Builds can be shared with testers and stakeholders via organization email.  
+   - Role-based access control to manage who can download or install the builds.  
+
+7. **Build Tracking & Logs:**  
+   - Dashboard to monitor uploaded builds and installation status.  
+   - Logs for tracking user actions, including uploads, downloads, and installations.  
+
+This structured system ensures **secure, project-specific build management**, controlled access, **optimized storage usage**, and seamless testing within our lab environment. 🚀
