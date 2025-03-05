@@ -1,8 +1,17 @@
-Phase 1: App Build Management Portal
+Project-Wise Groups & Access Control:
+
+Each project will have a dedicated group (e.g., "Project ABC") for build management.
+Only members of a specific project group can upload and manage builds within their group.
+Users outside the group will not have upload access to ensure strict project isolation.
 App Build Upload & Storage:
 
 Users can upload Android (.apk, .aab) and iOS (.ipa) builds to a centralized portal.
-Versioning support to manage different releases.
+Versioning support to track different releases efficiently.
+Upload permission will be restricted to authorized users only.
+Strict File Naming & Format Restrictions:
+
+No duplicate build names allowed to prevent confusion and overwrites.
+Only .apk, .aab, and .ipa files are allowed; other file types are restricted.
 Device Lab Installation:
 
 Uploaded builds can be installed on lab devices for manual and automation testing.
@@ -10,8 +19,8 @@ Ensures correct deployment on Android and iOS devices.
 Tester & Organization-Wide Distribution:
 
 Builds can be shared with testers and stakeholders via organization email.
-Access control to restrict unauthorized downloads.
+Role-based access control to manage who can download or install the builds.
 Build Tracking & Logs:
 
 Dashboard to monitor uploaded builds and installation status.
-Logs for tracking downloads and installations.
+Logs for tracking user actions, including uploads, downloads, and installations.
