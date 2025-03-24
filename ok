@@ -1,0 +1,40 @@
+Key Points Jo Manager Ko Batane Hai:
+Humne kya kiya?
+
+Messaging app launch ki ADB command run ki.
+
+CPU aur memory usage check kiya.
+
+CPU aur memory constraints apply kiye.
+
+Constraints apply karne ka effect kya pada?
+
+CPU Limit karne se: Response time thoda badh gaya.
+
+Memory Limit karne se: App launch slow ho gaya aur UI load time badh gaya.
+
+Comparison dikhaya:
+
+CPU aur memory ka before vs. after analysis table mein diya hai.
+
+Constraints ke baad CPU usage thoda badh gaya, memory thodi kam ho gayi, aur app ka response slow ho gaya.
+
+Conclusion:
+
+App constrained environment me bhi functional raha, lekin performance slow ho gayi.
+
+Further optimization chahiye taaki app low-resource environments me smoothly chale.
+
+Agar manager aur detail maange, toh hum optimization steps bhi add kar sakte hain. Let me know agar kuch aur modify karna ho!
+
+
+
+
+
+
+
+
+
+
+
+
