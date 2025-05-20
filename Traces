@@ -1,0 +1,67 @@
+import Foundation
+
+var memoryBlocks: [UnsafeMutableRawPointer] = []
+
+func allocateMemoryMB(_ mb: Int) {
+    let size = mb * 1024 * 1024
+    if let pointer = malloc(size) {
+        memset(pointer, 0, size)
+        memoryBlocks.append(pointer)
+    }
+}
+
+func stressCPU(iterations: Int) {
+    DispatchQueue.global(qos: .userInitiated).async {
+        for _ in 0..<iterations {
+            _ = (0...100_000).map { $0 * $0 }.reduce(0, +)
+        }
+    }
+}
+
+enum LoadLevel {
+    case low, medium, high
+}
+
+func simulateLoad(level: LoadLevel) {
+    switch level {
+    case .low:
+        allocateMemoryMB(50)
+        stressCPU(iterations: 100)
+    case .medium:
+        allocateMemoryMB(150)
+        stressCPU(iterations: 1000)
+    case .high:
+        allocateMemoryMB(300)
+        stressCPU(iterations: 5000)
+    }
+}
+
+
+
+
+
+bsksbsks
+
+
+
+
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Button("Simulate LOW Load") {
+                simulateLoad(level: .low)
+            }
+            Button("Simulate MEDIUM Load") {
+                simulateLoad(level: .medium)
+            }
+            Button("Simulate HIGH Load") {
+                simulateLoad(level: .high)
+            }
+        }
+        .padding()
+
+    }
+}
+
