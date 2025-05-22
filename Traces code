@@ -1,0 +1,10 @@
+if (lactivityName) {
+throw new Error('Failed to extract activity name*);
+console. log(activityName: Stactivitynaner
+const traceFileName = trace_file_$(udid)_$(randomString) • perfetto=trace const stop_command = adb -s ${udid) shell am force-stop•$(appId}$>
+const commandl= adb +s S{udid) shell perfetto -o /data/misc/perfetto-traces/S(traceFileName) -t 5s sched freq idte am':
+const command2 = adb -s S(udid} shelt:am start,-n ${act#VtyName*:
+const command = adb -s S{udid) pull /data/misc/perfetto-traces/S(traceFfleName} S{localDir)/S{traceF{leName}*;
+const commanda = */Users/rushikesh.rajesaheb.puri/Documents/NodeJS/AndroidAppLaunchPerfetto/Perfetto-nac-arm64/trace_proct
+const args4 = ('--run-metrics', "android_startup', "S(localDir)/S(traceF1leNane}'. '-metrics-output', "json'J:
+const delete_command = adb -s Sfudid) shell rm /data/misc/perfetto-traces/S(traceFiLeName) :
