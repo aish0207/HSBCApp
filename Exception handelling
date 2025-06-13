@@ -1,0 +1,235 @@
+📌 1. Device Availability Issues
+
+🧩 Scenario 1: Both Android and iOS devices are busy
+
+User Message:
+
+⚠️ All devices are currently busy processing other tasks. Please try again after some time or contact support if the issue persists.
+
+🧩 Scenario 2: iOS is busy, Android is available, and user requests iOS
+
+User Message:
+
+🚫 iOS device is currently occupied with another run. Please try again later or switch to Android if suitable for your test.
+
+🧩 Scenario 3: Android is busy, iOS is available, and user requests Android
+
+User Message:
+
+🚫 Android device is currently occupied. Please wait or choose iOS if the test is compatible.
+
+⸻
+
+📌 2. App Upload Failures
+
+🧩 Scenario 4: APK/IPA upload failed due to client network issues
+
+User Message:
+
+🚫 App upload failed due to network issues on your end. Please check your connection and retry.
+
+🧩 Scenario 5: APK/IPA uploaded, but failed to reach server (backend infra issue)
+
+User Message:
+
+🚨 Upload received but failed to process on our server. Please try again after a few minutes. If the issue continues, report with timestamp and file details.
+
+🧩 Scenario 6: Upload fails on first attempt (Retry prompt)
+
+User Message:
+
+⏳ Upload failed. Would you like to retry? Please ensure a stable internet connection and try again.
+
+⸻
+
+📌 3. Trigger Failures
+
+🧩 Scenario 7: App trigger fails due to invalid/missing UDID or token
+
+User Message:
+
+🚫 App launch failed due to missing or invalid device information. Please verify UDID and token, and try again.
+
+🧩 Scenario 8: Trigger fails due to exhausted iteration quota or unsupported platform
+
+User Message:
+
+🚫 App launch not triggered. Either iteration count exceeded or the specified platform is not supported.
+
+⸻
+
+📌 4. Logs & Execution Issues
+
+🧩 Scenario 9: Logs not generated due to runtime crash
+
+User Message:
+
+⚠️ App launch could not complete successfully. Logs were not generated. Please check if the uploaded build is stable.
+
+🧩 Scenario 10: Logs not found for given appLaunchId or buildId
+
+User Message:
+
+❌ No logs found for the provided Launch ID and Build ID. Ensure the app was triggered successfully and try again.
+
+🧩 Scenario 11: Log download failure due to expired/invalid session
+
+User Message:
+
+⚠️ Session expired or log token invalid. Please re-authenticate and try downloading again.
+
+⸻
+
+📌 5. Input Validation
+
+🧩 Scenario 12: User misses mandatory fields like PSID, buildName, platform
+
+User Message:
+
+🚫 Missing required input: [FieldName]. Please fill in all mandatory fields and retry.
+
+🧩 Scenario 13: Invalid file type (not .apk/.ipa)
+
+User Message:
+
+❌ Unsupported file format. Please upload a valid APK or IPA file only.
+
+⸻
+
+📌 6. System Overload / Unknown Errors
+
+🧩 Scenario 14: System under maintenance or rate-limited
+
+User Message:
+
+⚙️ Service is temporarily unavailable due to maintenance or high traffic. Please try again later.
+
+🧩 Scenario 15: Unexpected error during any API call
+
+User Message:
+
+❗ Unexpected error occurred. Please try again. If the issue persists, report with reference ID: [log_trace_id].
+
+
+
+
+
+
+
+
+
+
+hsksnme
+
+
+
+
+
+Based on your architecture and flow for the app startup performance project — where a user uploads an APK/IPA and retrieves logs after a triggered execution over Android/iOS — here are detailed exception handling scenarios and accurate user-facing messages for each API:
+
+⸻
+
+🔸 1. Validate User API
+
+✅ Success:
+	•	Proceed to next step.
+
+❌ Exceptions:
+
+Scenario	Error Message (User-Facing)
+Invalid or expired PSID	Session expired or invalid user ID. Please log in again.
+Missing or malformed PSID	Missing or invalid user credentials. Please verify and retry.
+
+
+⸻
+
+🔸 2. App Upload API
+
+✅ Success:
+	•	Return token and success message.
+
+❌ Exceptions:
+
+Scenario	Error Message (User-Facing)
+Network issue during upload (user-side)	Upload interrupted due to network issues. Please check your connection and try again.
+File partially uploaded	File upload incomplete. Please re-upload the full APK/IPA.
+File format not supported	Invalid file type. Only .apk or .ipa files are allowed.
+Server-side failure after upload completes	Upload received but failed to process. Please retry in a few moments or contact support.
+File too large (limit exceeded)	Upload failed: File size exceeds the allowed limit.
+Retry scenario	Something went wrong during upload. Please try re-uploading the file once more.
+
+
+⸻
+
+🔸 3. Trigger App on UDID (Create & Trigger API)
+
+✅ Success:
+	•	App launch starts, appLaunchId and buildId returned.
+
+❌ Exceptions:
+
+Scenario	Error Message (User-Facing)
+Both devices (Android & iOS) are busy	All testing devices are currently in use. Please wait and retry after some time.
+Only iOS busy, Android free; user requested iOS	iOS device is currently in use. Please retry later or use Android if applicable.
+Invalid/missing UDID	Invalid device identifier provided. Please check and retry.
+Invalid token from upload	File token expired or invalid. Please re-upload your app.
+Server error during trigger	Unable to initiate app launch due to internal error. Please retry or contact support.
+Missing parameters (e.g., psid, platform)	Required information is missing in the request. Please verify all fields.
+
+
+⸻
+
+🔸 4. Log Generation (During Iteration)
+
+❌ Exceptions:
+
+Scenario	Error Message (User-Facing)
+Log creation failed mid-run	Test started but logs couldn't be generated. Please retry the run or contact support.
+Log folder inaccessible or write permission denied	Internal error while generating logs. Please retry.
+Iteration count invalid (e.g., 0, negative)	Iteration value must be greater than zero.
+Logs created but deletion post run fails	Warning: Logs generated successfully, but cleanup failed. Please inform the support team.
+
+
+⸻
+
+🔸 5. Download Logs API
+
+✅ Success:
+	•	Download log file.
+
+❌ Exceptions:
+
+Scenario	Error Message (User-Facing)
+Invalid or expired appLaunchId or buildId	Invalid or expired request. Please rerun the test or re-check your log request ID.
+Logs not found yet (delay in generation)	Log file not available yet. Please wait a few moments and retry.
+Log file deleted post TTL (time-to-live)	Requested log file is no longer available. Please rerun the test.
+Permission denied (wrong user accessing)	You are not authorized to download this log.
+Server failure	Unable to retrieve logs due to internal error. Please try again.
+
+
+⸻
+
+🔸 6. Mail API (Send Logs to User)
+
+❌ Exceptions:
+
+Scenario	Error Message (User-Facing)
+Invalid or missing email	Please provide a valid email address to receive logs.
+Log not ready yet	Logs are not yet ready to be sent. Please try again later.
+Email sending failed	Failed to send logs via email. Please check your address or download directly.
+Attachment size exceeded	Log file too large to send via email. Please download it manually.
+
+
+⸻
+
+✅ Additional Informative UI Messages (General UX)
+	•	Upload in progress: Uploading... Please do not close the browser.
+	•	Retry prompt: Facing issues? Retry once or contact the support team.
+	•	Device availability: Checking device availability...
+	•	Logs status: Generating logs for iteration ${i} of ${n}. Please wait...
+	•	Logs ready: Your logs are ready for download or email.
+	•	Final logs not generated: The test completed but logs could not be retrieved. Please re-trigger.
+
+⸻
+
+Would you like me to help write the actual backend exception structure (e.g., HTTP response codes, JSON error format) next?
