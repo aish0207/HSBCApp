@@ -1,0 +1,107 @@
+Awesome—here’s a super clear, step-by-step setup doc you can hand to the client. I’ve also made a ready-to-download file so you don’t have to copy/paste.
+
+Download the Client Device Setup Guide (RTF)
+
+Client Device Setup: 5 Android + 5 iPhone + 1 Mac
+
+This is written for beginners. Follow steps in order—don’t worry if your screen looks slightly different.
+
+A) Restarting devices
+
+Android – normal restart
+	1.	Hold the Power button until the power menu appears.
+	2.	Tap Restart (or Power off, then press Power again).
+
+Android – force restart (frozen)
+	1.	Hold Power + Volume Up (or Power + Volume Down) for ~10–15 sec.
+	2.	Release when the logo appears.
+
+iPhone – normal restart (Face ID models)
+	1.	Hold Side + either Volume until the slider appears.
+	2.	Slide Power off → after screen is off, hold Side to turn on.
+
+iPhone – force restart (unresponsive)
+	•	iPhone 8 or later: Vol Up → Vol Down → hold Side till Apple logo.
+	•	iPhone 7/7 Plus: hold Side/Top + Volume Down.
+	•	iPhone 6s or earlier: hold Home + Side/Top.
+
+B) Android: turn on Developer options + USB debugging (do once per phone)
+	1.	Open Settings > About phone.
+	2.	Tap Build number 7 times (enter PIN if asked). You’ll see “You are now a developer.”
+	3.	Go to Settings > System > Developer options (location varies by brand).
+	4.	Toggle Developer options = On.
+	5.	Toggle USB debugging = On → OK.
+	6.	Connect to the Mac; when prompted Allow USB debugging? choose Always allow → OK.
+
+If “Build number” isn’t in About phone: check Settings > About phone > Software information.
+
+C) iPhone: turn on Developer Mode (iOS 16+; do once per phone)
+	1.	Connect iPhone to the Mac (cable).
+	2.	On iPhone, when asked Trust This Computer? tap Trust and enter passcode.
+	3.	On the Mac, open Xcode > Window > Devices and Simulators and Pair if shown.
+	4.	On iPhone, go to Settings > Privacy & Security > Developer Mode.
+	5.	Toggle Developer Mode = On. iPhone will restart → after restart tap Turn On.
+
+If Developer Mode switch is missing
+	•	Ensure iOS 16 or later.
+	•	Keep phone connected and Xcode open.
+	•	Install/run a dev-signed app once (your test tool usually does this), then check again.
+	•	If it’s an MDM/corporate device, ask admin to allow Developer Mode.
+
+D) Fixing iOS WebDriver (WebDriverAgent) issues
+
+Use this if automation won’t start or you see WebDriver/WebDriverAgent errors.
+
+Remove old WebDriverAgent from iPhone
+	•	On iPhone, delete WebDriverAgent or WebDriverAgentRunner like a normal app
+(or Settings > General > iPhone Storage → find app → Delete App).
+
+Remove from Xcode (Installed Apps)
+	1.	On Mac, open Xcode > Window > Devices and Simulators.
+	2.	Select the iPhone.
+	3.	In Installed Apps, select WebDriverAgentRunner → press Delete (or right-click Uninstall).
+
+Re-install WebDriverAgent
+	•	Option A (recommended): Start your automation (e.g., Appium). It will build & install WDA automatically.
+	•	Option B (manual): Open the WebDriverAgent project in Xcode → target WebDriverAgentRunner → set Signing Team → choose the device as Destination → press Run.
+
+On iPhone, if prompted, Trust Developer (Settings > General > VPN & Device Management). Accept any permission pop-ups.
+
+If problems continue
+	•	In Xcode: Product > Clean Build Folder (Shift+Cmd+K).
+	•	Delete WDA Derived Data: Xcode > Settings > Locations → open Derived Data folder → delete WebDriverAgent.
+	•	Restart the iPhone and try again.
+
+E) Restarting the Mac
+	1.	Click Apple menu () > Restart.
+	2.	If the Mac is frozen: hold the Touch ID / Power button ~10 seconds to force shutdown, then press again to turn on.
+	3.	If devices don’t show up after reboot, unplug/re-plug cables or hubs.
+
+F) If Developer Mode is NOT ON (quick fixes)
+
+iPhone
+	•	iOS 16+, cable connected, Xcode open, device Trusted.
+	•	Toggle Settings > Privacy & Security > Developer Mode.
+	•	If still missing, install/run a dev-signed app once; check again.
+	•	MDM/Company phones may require admin to enable.
+
+Android
+	•	Ensure Developer options = On and USB debugging = On (see Section B).
+	•	When connecting, pick USB mode File Transfer if prompted.
+	•	If not detected: try another cable/port; toggle USB debugging Off/On; reconnect and Always allow.
+
+G) Quick pre-test checklist
+
+☐ Phones restarted today
+☐ Android: Developer options + USB debugging ON
+☐ iPhone: Developer Mode ON + device Trusted with the Mac
+☐ If iOS failed before: WebDriverAgent re-installed
+☐ Cables firmly connected (try a different cable if a device is missing)
+
+Simple Hindi notes (reference)
+	•	Android Developer Options: Settings > About phone > Build number par 7 baar tap karein; phir Settings > System > Developer options me USB debugging = On karein.
+	•	iPhone Developer Mode: Phone ko Mac se connect karein, Trust This Computer par Trust karein; phir Settings > Privacy & Security > Developer Mode On karein (phone restart hoga).
+	•	WebDriverAgent issue: iPhone se WebDriverAgent / WebDriverAgentRunner delete karein; Xcode ke Devices and Simulators me uninstall karein; phir tool se run karke reinstall karein.
+	•	Mac restart: Apple menu > Restart. Agar hang ho, Power button 10 sec dabayein, phir on karein.
+
+Want this as a Word or PDF too? I can export another version immediately. ￼
